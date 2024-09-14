@@ -9,13 +9,21 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 @Preview
 fun App() {
+    // TODO: delete later
+    val mainViewModel = koinViewModel<MainViewModel>()
+    val item by mainViewModel.item
+
     MaterialTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -26,7 +34,7 @@ fun App() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("Hello World.")
+                Text(item.title ?: "EMPTY")
             }
         }
 
