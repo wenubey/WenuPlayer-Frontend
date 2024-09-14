@@ -1,4 +1,4 @@
-package org.wenubey.wenuplayerfrontend
+package org.wenubey.wenuplayerfrontend.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
