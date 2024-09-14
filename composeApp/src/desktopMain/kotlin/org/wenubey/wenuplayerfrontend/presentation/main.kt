@@ -6,7 +6,9 @@ import org.koin.core.context.startKoin
 
 fun main() = application {
     startKoin {
-        modules()
+        modules(
+            // TODO add your desktop modules
+        )
     }
     Window(
         onCloseRequest = ::exitApplication,
