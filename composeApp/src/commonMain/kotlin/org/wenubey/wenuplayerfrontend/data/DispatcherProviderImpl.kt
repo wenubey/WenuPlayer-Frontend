@@ -1,0 +1,5 @@
+package org.wenubey.wenuplayerfrontend.data
+
+import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
+
+class DispatcherProviderImpl: DispatcherProvider
