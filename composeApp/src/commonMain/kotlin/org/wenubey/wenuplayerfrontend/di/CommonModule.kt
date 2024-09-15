@@ -11,16 +11,16 @@ import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import org.wenubey.wenuplayerfrontend.presentation.MainViewModel
 
-val dispatcherModule = module {
+private val dispatcherModule = module {
     singleOf(::DispatcherProviderImpl).bind(DispatcherProvider::class)
 }
 
-val apiServiceModule = module {
+private val apiServiceModule = module {
     singleOf(::getHttpClient)
     singleOf(::ApiServiceImpl).bind(ApiService::class)
 }
 
-val commonViewModelModule = module {
+private val commonViewModelModule = module {
     viewModelOf(::MainViewModel)
 }
 
