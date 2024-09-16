@@ -14,7 +14,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +25,6 @@ import co.touchlab.kermit.Logger
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
-import kotlin.math.log
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
@@ -37,6 +35,7 @@ fun App() {
     val uploadState by mainViewModel.uploadState
     val videoSummaries by mainViewModel.summariesState
     var filePath by remember { mutableStateOf("") }
+    var currentVideo by mainViewModel.currentVideo
     val logger = Logger.withTag("App")
 
     MaterialTheme {
@@ -85,6 +84,15 @@ fun App() {
                         }
                     }
                 }
+
+                Button(onClick = {
+                    mainViewModel.getVideoById("1dd94d84-2b50-4264-bcfb-3b0ca8ae814c")
+                }) {
+                    Text("Get Video By ID")
+                }
+
+                Text(currentVideo.first?.title ?: "UNKNOWN")
+                Text("Size: ${currentVideo.second?.length()}")
             }
         }
 

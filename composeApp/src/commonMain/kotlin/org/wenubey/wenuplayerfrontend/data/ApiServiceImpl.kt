@@ -6,7 +6,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.readBytes
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -52,8 +56,55 @@ class ApiServiceImpl(
 
     override suspend fun getVideoSummaries(): Result<List<VideoSummary>> =
         safeApiCall(logger = logger, dispatcher = ioDispatcher) {
-            client.get(BASE_URL + VIDEOS_PATH + GET_VIDEO_SUMMARIES_ENDPOINT).body<List<VideoSummary>>()
+            client.get(BASE_URL + VIDEOS_PATH + GET_VIDEO_SUMMARIES_ENDPOINT)
+                .body<List<VideoSummary>>()
         }
+
+    override suspend fun getVideoById(id: String): Result<Pair<VideoMetadata, File>> =
+        safeApiCall(logger = logger, dispatcher = ioDispatcher) {
+            val metadata =
+                client.get(BASE_URL + VIDEOS_PATH + GET_VIDEO_METADATA_ENDPOINT.replace("{id}", id))
+                    .body<VideoMetadata>()
+
+            val contentType = when {
+                metadata.title.endsWith(".mp4", ignoreCase = true) -> ContentType.Video.MP4
+                metadata.title.endsWith(".mkv", ignoreCase = true) -> ContentType(
+                    "video",
+                    "x-matroska"
+                )
+
+                else -> ContentType.Video.Any
+            }
+
+
+            val downloadsDir = getDownloadsDirectory()
+            val wenuplayerDir = File(downloadsDir, "wenuplayer")
+
+            if (!wenuplayerDir.exists()) {
+                wenuplayerDir.mkdirs()
+            }
+
+            val videoFile = File(wenuplayerDir, metadata.title)
+
+            if (videoFile.exists()) {
+                Pair(metadata, videoFile)
+            } else {
+                val fileResponse =
+                    client.get(
+                        BASE_URL +
+                                VIDEOS_PATH +
+                                GET_VIDEO_STREAM_ENDPOINT.replace("{id}", id)
+                    ) {
+                        header(HttpHeaders.Accept, contentType)
+                    }
+
+                videoFile.writeBytes(fileResponse.readBytes())
+
+                Pair(metadata, videoFile)
+            }
+
+        }
+
 
     private companion object {
         const val TAG = "ApiService"

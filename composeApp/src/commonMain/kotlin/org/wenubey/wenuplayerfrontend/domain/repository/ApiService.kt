@@ -8,4 +8,5 @@ import java.io.File
 interface ApiService {
     suspend fun uploadVideo(videoMetadata: VideoMetadata, videoFile: File): Result<Unit>
     suspend fun getVideoSummaries(): Result<List<VideoSummary>>
+    suspend fun getVideoById(id: String): Result<Pair<VideoMetadata, File>>
 }

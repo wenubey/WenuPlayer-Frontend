@@ -24,6 +24,7 @@ class MainViewModel(
 
     var uploadState = mutableStateOf("")
     var summariesState = mutableStateOf<List<VideoSummary>>(emptyList())
+    var currentVideo = mutableStateOf<Pair<VideoMetadata?, File?>>(Pair(null, null))
 
     fun uploadVideo(path: String) {
         viewModelScope.launch(ioDispatcher) {
@@ -59,6 +60,17 @@ class MainViewModel(
                 summariesState.value = result.getOrNull()!!
             } else {
                 logger.e { "Get Summaries failed with exception: ${result.exceptionOrNull()}" }
+            }
+        }
+    }
+
+    fun getVideoById(id: String) {
+        viewModelScope.launch(ioDispatcher) {
+            val result = apiService.getVideoById(id)
+            if (result.isSuccess) {
+                currentVideo.value = result.getOrNull()!!
+            } else {
+                logger.e { "Get video by id failed with exception: ${result.exceptionOrNull()}" }
             }
         }
     }

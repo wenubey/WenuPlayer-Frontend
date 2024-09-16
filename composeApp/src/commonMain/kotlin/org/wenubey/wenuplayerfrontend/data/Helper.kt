@@ -1,13 +1,12 @@
 package org.wenubey.wenuplayerfrontend.data
 
+import androidx.compose.runtime.Composable
 import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Files
-import kotlin.math.log
 
 expect fun getHttpClient(): HttpClient
 
@@ -28,3 +27,6 @@ fun isValidContentType(contentType: String): Boolean {
 
 fun getContentType(file: File): String =
     Files.probeContentType(file.toPath()) ?: "application/octet-stream"
+
+
+expect fun getDownloadsDirectory(): File
