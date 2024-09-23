@@ -9,4 +9,16 @@ data class VideoMetadata(
     val url: String,
     val lastWatched: Long,
     val deletedAt: Long? = null,
-)
+) {
+    companion object {
+        fun default(): VideoMetadata {
+            return VideoMetadata(
+                id = "",
+                title = "",
+                url = "",
+                lastWatched = 0L,
+                deletedAt = null
+                )
+        }
+    }
+}

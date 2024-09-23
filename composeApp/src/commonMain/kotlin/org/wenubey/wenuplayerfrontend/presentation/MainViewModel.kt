@@ -7,6 +7,7 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
+import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
@@ -24,7 +25,7 @@ class MainViewModel(
 
     var uploadState = mutableStateOf("")
     var summariesState = mutableStateOf<List<VideoSummary>>(emptyList())
-    var currentVideo = mutableStateOf<Pair<VideoMetadata?, File?>>(Pair(null, null))
+    var currentVideo = mutableStateOf(VideoModel.default())
 
     fun uploadVideo(path: String) {
         viewModelScope.launch(ioDispatcher) {

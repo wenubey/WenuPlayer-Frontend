@@ -16,6 +16,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
+import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
@@ -60,50 +61,57 @@ class ApiServiceImpl(
                 .body<List<VideoSummary>>()
         }
 
-    override suspend fun getVideoById(id: String): Result<Pair<VideoMetadata, File>> =
+    override suspend fun getVideoById(id: String): Result<VideoModel> =
         safeApiCall(logger = logger, dispatcher = ioDispatcher) {
-            val metadata =
-                client.get(BASE_URL + VIDEOS_PATH + GET_VIDEO_METADATA_ENDPOINT.replace("{id}", id))
-                    .body<VideoMetadata>()
-
-            val contentType = when {
-                metadata.title.endsWith(".mp4", ignoreCase = true) -> ContentType.Video.MP4
-                metadata.title.endsWith(".mkv", ignoreCase = true) -> ContentType(
-                    "video",
-                    "x-matroska"
-                )
-
-                else -> ContentType.Video.Any
-            }
-
-
-            val downloadsDir = getDownloadsDirectory()
-            val wenuplayerDir = File(downloadsDir, "wenuplayer")
-
-            if (!wenuplayerDir.exists()) {
-                wenuplayerDir.mkdirs()
-            }
-
-            val videoFile = File(wenuplayerDir, metadata.title)
+            val metadata = fetchVideoMetadata(id)
+            val contentType = determineContentType(metadata.title)
+            val videoFile = getVideoFile(metadata)
 
             if (videoFile.exists()) {
-                Pair(metadata, videoFile)
+                VideoModel(metadata, videoFile)
             } else {
-                val fileResponse =
-                    client.get(
-                        BASE_URL +
-                                VIDEOS_PATH +
-                                GET_VIDEO_STREAM_ENDPOINT.replace("{id}", id)
-                    ) {
-                        header(HttpHeaders.Accept, contentType)
-                    }
-
-                videoFile.writeBytes(fileResponse.readBytes())
-
-                Pair(metadata, videoFile)
+                val fileResponse = downloadVideoStream(id, contentType)
+                writeVideoToFile(videoFile, fileResponse)
+                VideoModel(metadata, videoFile)
             }
-
         }
+
+    private suspend fun fetchVideoMetadata(id: String): VideoMetadata {
+        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_METADATA_ENDPOINT.replace("{id}", id)
+        return client.get(url).body<VideoMetadata>()
+    }
+
+
+    private fun determineContentType(title: String): ContentType {
+        return when {
+            title.endsWith(".mp4", ignoreCase = true) -> ContentType.Video.MP4
+            title.equals(".mkv", ignoreCase = true) -> ContentType("video", "x-matroska")
+            else -> ContentType.Video.Any
+        }
+    }
+
+    private fun getVideoFile(metadata: VideoMetadata): File {
+        val downloadsDir = getDownloadsDirectory()
+        val wenuPlayerDir = File(downloadsDir, WENU_PLAYER_DIR)
+
+        if (!wenuPlayerDir.exists()){
+            wenuPlayerDir.mkdirs()
+        }
+
+        return File(wenuPlayerDir, metadata.title)
+    }
+
+    private suspend fun downloadVideoStream(id: String, contentType: ContentType): ByteArray {
+        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_STREAM_ENDPOINT.replace("{id}", id)
+
+        return client.get(url) {
+            header(HttpHeaders.Accept, contentType)
+        }.readBytes()
+    }
+
+    private fun writeVideoToFile(file: File, videoBytes: ByteArray) {
+        file.writeBytes(videoBytes)
+    }
 
 
     private companion object {
@@ -117,5 +125,6 @@ class ApiServiceImpl(
         const val UPDATE_LAST_WATCHED_ENDPOINT = "/video/{id}/lastWatched"
         const val RESTORE_VIDEO_ENDPOINT = "/video/{id}/restore"
         const val SOFT_DELETE_VIDEO_ENDPOINT = "/video/{id}/trash"
+        const val WENU_PLAYER_DIR = "wenuplayer"
     }
 }

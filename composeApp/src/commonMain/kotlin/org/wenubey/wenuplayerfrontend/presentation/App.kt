@@ -91,8 +91,8 @@ fun App() {
                     Text("Get Video By ID")
                 }
 
-                Text(currentVideo.first?.title ?: "UNKNOWN")
-                Text("Size: ${currentVideo.second?.length()}")
+                Text(currentVideo.metadata.title)
+                Text("Size: ${currentVideo.videoFile.length()}")
             }
         }
 
