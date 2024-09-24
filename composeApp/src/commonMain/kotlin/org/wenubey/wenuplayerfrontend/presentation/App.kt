@@ -9,11 +9,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.Forward5
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,8 +49,10 @@ fun App() {
     val uploadState by mainViewModel.uploadState
     val videoSummaries by mainViewModel.summariesState
     var filePath by remember { mutableStateOf("") }
-    var currentVideo by mainViewModel.currentVideo
+    val currentVideo by mainViewModel.currentVideo
+    val currentTime by mainViewModel.currentTimeMillis
     val logger = Logger.withTag("App")
+
 
     MaterialTheme {
         Scaffold(
@@ -56,7 +72,7 @@ fun App() {
                 )
 
                 // Button to trigger the upload
-                Button(onClick = { mainViewModel.uploadVideo(filePath) }) {
+                Button(onClick = { mainViewModel.onEvent(VideoEvent.UploadVideo(filePath)) }) {
                     Text("Upload Video")
                 }
 
@@ -67,7 +83,7 @@ fun App() {
                     modifier = Modifier.padding(top = 16.dp)
                 )
                 Button(onClick = {
-                    mainViewModel.getVideoSummaries()
+                    mainViewModel.onEvent(VideoEvent.GetVideoSummaries)
                 }) {
                     Text("Get All Video Summaries")
                 }
@@ -86,13 +102,48 @@ fun App() {
                 }
 
                 Button(onClick = {
-                    mainViewModel.getVideoById("1dd94d84-2b50-4264-bcfb-3b0ca8ae814c")
+                    mainViewModel.onEvent(VideoEvent.GetVideoById("1dd94d84-2b50-4264-bcfb-3b0ca8ae814c"))
                 }) {
                     Text("Get Video By ID")
                 }
 
                 Text(currentVideo.metadata.title)
                 Text("Size: ${currentVideo.videoFile.length()}")
+
+                Row {
+                    Button(
+                        onClick =  {
+                            mainViewModel.onPlayEvent(VideoPlayEvent.Play)
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Filled.PlayCircle, contentDescription = null)
+                    }
+                    Button(
+                        onClick =  {
+                            mainViewModel.onPlayEvent(VideoPlayEvent.Pause)
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Filled.PauseCircle, contentDescription = null)
+                    }
+
+                    Button(
+                        onClick =  {
+                            mainViewModel.onPlayEvent(VideoPlayEvent.Forward)
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Filled.FastForward, contentDescription = null)
+                    }
+
+                    Button(
+                        onClick =  {
+                            mainViewModel.onPlayEvent(VideoPlayEvent.Backward)
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Filled.FastRewind, contentDescription = null)
+                    }
+                }
+
+                Text("Current Time: $currentTime")
             }
         }
 

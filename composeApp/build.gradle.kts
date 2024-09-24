@@ -52,6 +52,9 @@ kotlin {
 
             // Kermit
             implementation(libs.kermit)
+
+            // Material Icons Extended
+            implementation(compose.materialIconsExtended)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

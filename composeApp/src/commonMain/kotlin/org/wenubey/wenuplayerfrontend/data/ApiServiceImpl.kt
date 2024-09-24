@@ -7,6 +7,8 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.readBytes
@@ -14,6 +16,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
@@ -21,6 +25,7 @@ import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
 import java.util.UUID
+import kotlin.math.log
 
 // TODO: Change this ApiServiceImpl with necessary functionalities
 class ApiServiceImpl(
@@ -94,7 +99,7 @@ class ApiServiceImpl(
         val downloadsDir = getDownloadsDirectory()
         val wenuPlayerDir = File(downloadsDir, WENU_PLAYER_DIR)
 
-        if (!wenuPlayerDir.exists()){
+        if (!wenuPlayerDir.exists()) {
             wenuPlayerDir.mkdirs()
         }
 
@@ -113,6 +118,16 @@ class ApiServiceImpl(
         file.writeBytes(videoBytes)
     }
 
+    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<Unit> =
+        safeApiCall(logger = logger, dispatcher = ioDispatcher) {
+            val url = BASE_URL + VIDEOS_PATH + UPDATE_LAST_WATCHED_ENDPOINT.replace("{id}", id)
+
+           client.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(lastMillis)
+            }
+        }
+
 
     private companion object {
         const val TAG = "ApiService"
@@ -126,5 +141,7 @@ class ApiServiceImpl(
         const val RESTORE_VIDEO_ENDPOINT = "/video/{id}/restore"
         const val SOFT_DELETE_VIDEO_ENDPOINT = "/video/{id}/trash"
         const val WENU_PLAYER_DIR = "wenuplayer"
+        const val UPDATE_LAST_WATCH_SUCCESS = "Last watched time updated."
+        const val UPDATE_LAST_WATCH_ERROR = "Failed to update last watched time: "
     }
 }
