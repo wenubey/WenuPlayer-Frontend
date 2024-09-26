@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.touchlab.kermit.Logger
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -49,8 +51,8 @@ fun App() {
     val uploadState by mainViewModel.uploadState
     val videoSummaries by mainViewModel.summariesState
     var filePath by remember { mutableStateOf("") }
-    val currentVideo by mainViewModel.currentVideo
-    val currentTime by mainViewModel.currentTimeMillis
+    val videoState by mainViewModel.videoState.collectAsState()
+    val currentTime = videoState.currentTimeMillis
     val logger = Logger.withTag("App")
 
 
@@ -107,8 +109,8 @@ fun App() {
                     Text("Get Video By ID")
                 }
 
-                Text(currentVideo.metadata.title)
-                Text("Size: ${currentVideo.videoFile.length()}")
+                Text(videoState.videoModel.metadata.title)
+                Text("Size: ${videoState.videoModel.videoFile.length()}")
 
                 Row {
                     Button(

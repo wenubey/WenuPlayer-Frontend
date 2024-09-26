@@ -73,8 +73,10 @@ class ApiServiceImpl(
             val videoFile = getVideoFile(metadata)
 
             if (videoFile.exists()) {
+                logger.i { "From Device: $metadata" }
                 VideoModel(metadata, videoFile)
             } else {
+                logger.i { "From Backend: $metadata" }
                 val fileResponse = downloadVideoStream(id, contentType)
                 writeVideoToFile(videoFile, fileResponse)
                 VideoModel(metadata, videoFile)
