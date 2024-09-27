@@ -10,5 +10,6 @@ interface ApiService {
     suspend fun uploadVideo(videoMetadata: VideoMetadata, videoFile: File): Result<Unit>
     suspend fun getVideoSummaries(): Result<List<VideoSummary>>
     suspend fun getVideoById(id: String): Result<VideoModel>
-    suspend fun updateLastWatched(id: String, lastMillis: Long): Result<Unit>
+    suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String>
+    suspend fun deleteVideoById(id: String): Result<String>
 }

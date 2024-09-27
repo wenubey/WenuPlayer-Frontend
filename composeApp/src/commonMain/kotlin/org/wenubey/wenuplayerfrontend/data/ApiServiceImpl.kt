@@ -3,14 +3,15 @@ package org.wenubey.wenuplayerfrontend.data
 import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -62,7 +63,8 @@ class ApiServiceImpl(
 
     override suspend fun getVideoSummaries(): Result<List<VideoSummary>> =
         safeApiCall(logger = logger, dispatcher = ioDispatcher) {
-            client.get(BASE_URL + VIDEOS_PATH + GET_VIDEO_SUMMARIES_ENDPOINT)
+            val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_SUMMARIES_ENDPOINT
+            client.get(url)
                 .body<List<VideoSummary>>()
         }
 
@@ -84,8 +86,10 @@ class ApiServiceImpl(
         }
 
     private suspend fun fetchVideoMetadata(id: String): VideoMetadata {
-        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_METADATA_ENDPOINT.replace("{id}", id)
-        return client.get(url).body<VideoMetadata>()
+        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_METADATA_ENDPOINT
+        return client.get(url) {
+            parameter("id", id)
+        }.body<VideoMetadata>()
     }
 
 
@@ -109,9 +113,10 @@ class ApiServiceImpl(
     }
 
     private suspend fun downloadVideoStream(id: String, contentType: ContentType): ByteArray {
-        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_STREAM_ENDPOINT.replace("{id}", id)
+        val url = BASE_URL + VIDEOS_PATH + GET_VIDEO_STREAM_ENDPOINT
 
         return client.get(url) {
+            parameter("id", id)
             header(HttpHeaders.Accept, contentType)
         }.readBytes()
     }
@@ -120,16 +125,35 @@ class ApiServiceImpl(
         file.writeBytes(videoBytes)
     }
 
-    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<Unit> =
+    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String> =
         safeApiCall(logger = logger, dispatcher = ioDispatcher) {
-            val url = BASE_URL + VIDEOS_PATH + UPDATE_LAST_WATCHED_ENDPOINT.replace("{id}", id)
+            val url = BASE_URL + VIDEOS_PATH + UPDATE_LAST_WATCHED_ENDPOINT
 
-           client.put(url) {
+            val response = client.put(url) {
+                parameter("id", id)
                 contentType(ContentType.Application.Json)
                 setBody(lastMillis)
             }
+
+            if (response.status.isSuccess()) {
+                "Last watched updated successfully."
+            } else {
+                "Failed to update last watched."
+            }
         }
 
+    override suspend fun deleteVideoById(id: String): Result<String> =
+        safeApiCall(logger = logger, dispatcher = ioDispatcher) {
+            val url = BASE_URL + VIDEOS_PATH + SOFT_DELETE_VIDEO_ENDPOINT
+            val response = client.delete(url) {
+                parameter("id", id)
+            }
+            if (response.status.isSuccess()) {
+                "Video successfully move to trash. It will automatically deleted after 24 hours."
+            } else {
+                "Failed to move to trash try again later."
+            }
+        }
 
     private companion object {
         const val TAG = "ApiService"

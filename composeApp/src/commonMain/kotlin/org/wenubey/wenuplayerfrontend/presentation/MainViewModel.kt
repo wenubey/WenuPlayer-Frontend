@@ -1,7 +1,5 @@
 package org.wenubey.wenuplayerfrontend.presentation
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.asLongState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +19,7 @@ import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
 import java.util.UUID
+import kotlin.math.exp
 
 // TODO: Change this viewmodel with the necessary functionalities
 // TODO: Change this viewmodel with necessary states and events.
@@ -172,10 +171,18 @@ class MainViewModel(
         viewModelScope.launch(ioDispatcher) {
             val lastMillis = _videoState.value.currentTimeMillis
             val result = apiService.updateLastWatched(id = id, lastMillis = lastMillis)
-            if (result.isSuccess) {
-                logger.i { "Video last watched updated." }
-            } else {
-                logger.e { "Video last watched updated failed: ${result.exceptionOrNull()}" }
+            viewModelScope.launch(mainDispatcher) {
+                _videoState.update { oldState ->
+                   if (result.isSuccess) {
+                       oldState.copy(
+                           updateLastWatchInfo = result.getOrNull()!!
+                       )
+                   } else{
+                       oldState.copy(
+                           updateLastWatchInfo = result.exceptionOrNull()!!.message!!
+                       )
+                   }
+                }
             }
         }
     }
@@ -198,6 +205,7 @@ sealed interface VideoPlayEvent {
 // TODO create new states like current video queue change this video State
 data class VideoState(
     val videoModel: VideoModel = VideoModel.default(),
-    var currentTimeMillis: Long = 0L
+    var currentTimeMillis: Long = 0L,
+    val updateLastWatchInfo: String = "",
 )
 

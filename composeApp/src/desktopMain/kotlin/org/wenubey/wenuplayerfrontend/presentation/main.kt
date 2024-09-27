@@ -9,7 +9,7 @@ fun main() = application {
     startKoin {
         printLogger()
         modules(
-            commonModules
+            commonModules,
             // TODO add your desktop modules
         )
     }
