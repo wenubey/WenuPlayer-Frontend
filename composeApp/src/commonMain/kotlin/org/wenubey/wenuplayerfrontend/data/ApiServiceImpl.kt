@@ -12,6 +12,7 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -135,9 +136,10 @@ class ApiServiceImpl(
             }
 
             if (response.status.isSuccess()) {
-                "Last watched updated successfully."
+                UPDATE_LAST_WATCH_SUCCESS
             } else {
-                "Failed to update last watched."
+                val errorReason = response.bodyAsText()
+                UPDATE_LAST_WATCH_ERROR + errorReason
             }
         }
 
@@ -148,9 +150,24 @@ class ApiServiceImpl(
                 parameter("id", id)
             }
             if (response.status.isSuccess()) {
-                "Video successfully move to trash. It will automatically deleted after 24 hours."
+                SOFT_DELETE_VIDEO_SUCCESS
             } else {
-                "Failed to move to trash try again later."
+                val errorReason = response.bodyAsText()
+                SOFT_DELETE_VIDEO_ERROR + errorReason
+            }
+        }
+
+    override suspend fun restoreVideoById(id: String): Result<String> =
+        safeApiCall(logger = logger, dispatcher = ioDispatcher) {
+            val url = BASE_URL + VIDEOS_PATH + RESTORE_VIDEO_ENDPOINT
+            val response = client.put(url) {
+                parameter("id", id)
+            }
+            if (response.status.isSuccess()) {
+                RESTORE_VIDEO_SUCCESS
+            } else {
+                val errorReason = response.bodyAsText()
+                RESTORE_VIDEO_ERROR + errorReason
             }
         }
 
@@ -167,6 +184,11 @@ class ApiServiceImpl(
         const val SOFT_DELETE_VIDEO_ENDPOINT = "/video/{id}/trash"
         const val WENU_PLAYER_DIR = "wenuplayer"
         const val UPDATE_LAST_WATCH_SUCCESS = "Last watched time updated."
+        const val RESTORE_VIDEO_SUCCESS = "Video restored successfully"
+        const val SOFT_DELETE_VIDEO_SUCCESS =
+            "Video successfully move to trash. It will automatically deleted after 6 hours."
+        const val SOFT_DELETE_VIDEO_ERROR = "Failed to move to trash: "
         const val UPDATE_LAST_WATCH_ERROR = "Failed to update last watched time: "
+        const val RESTORE_VIDEO_ERROR = "Failed to restore video: "
     }
 }

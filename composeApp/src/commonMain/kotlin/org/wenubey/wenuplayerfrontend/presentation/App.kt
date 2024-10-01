@@ -39,13 +39,12 @@ import org.koin.core.annotation.KoinExperimentalAPI
 fun App() {
     // TODO: delete later
     val mainViewModel = koinViewModel<MainViewModel>()
-    val uploadState by mainViewModel.uploadState
-    val videoSummaries by mainViewModel.summariesState
+
     var filePath by remember { mutableStateOf("") }
     val videoState by mainViewModel.videoState.collectAsState()
+    val videoSummaries = videoState.summaries
     val currentTime = videoState.currentTimeMillis
-    val lastWatchInfo = videoState.updateLastWatchInfo
-    val deleteVideoInfo = videoState.deleteVideoInfo
+    val screenInfo = videoState.screenInfo
     val logger = Logger.withTag("App")
 
 
@@ -73,12 +72,6 @@ fun App() {
                     Text("Upload Video")
                 }
 
-                // Display the upload status
-                Text(
-                    text = uploadState,
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
                 Button(onClick = {
                     mainViewModel.onEvent(VideoEvent.GetVideoSummaries)
                 }) {
@@ -141,7 +134,7 @@ fun App() {
                 }
 
                 Text("Current Time: $currentTime")
-                Text(lastWatchInfo)
+
 
                 Button(
                     onClick = {
@@ -150,7 +143,16 @@ fun App() {
                 ) {
                     Text("Delete Current Video")
                 }
-                Text(deleteVideoInfo)
+
+                Button(
+                    onClick = {
+                        mainViewModel.onEvent(VideoEvent.RestoreVideoById(videoState.videoModel.metadata.id))
+                    }
+                ) {
+                    Text("Restore Current Video")
+                }
+
+                Text(screenInfo)
             }
         }
 

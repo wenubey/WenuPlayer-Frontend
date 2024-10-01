@@ -1,6 +1,5 @@
 package org.wenubey.wenuplayerfrontend.presentation
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
@@ -32,11 +31,6 @@ class MainViewModel(
 
     private val _videoState = MutableStateFlow(VideoState())
     val videoState: StateFlow<VideoState> = _videoState.asStateFlow()
-
-    // TODO change this states with Stateflow and create state data class to handle more clean
-    var uploadState = mutableStateOf("")
-    var summariesState = mutableStateOf<List<VideoSummary>>(emptyList())
-
 
     private var videoJob: Job? = null
 
@@ -109,10 +103,15 @@ class MainViewModel(
             is VideoEvent.DeleteVideoById -> {
                 deleteVideoById(event.id)
             }
+
+            is VideoEvent.RestoreVideoById -> {
+                restoreVideoById(event.id)
+            }
         }
     }
 
     // TODO change example video metadata to find video for given path and upload that metadata into backend
+    // TODO File exist should check on api service(in future repo) and move there.
     private fun uploadVideo(path: String) {
         viewModelScope.launch(ioDispatcher) {
             val video = VideoMetadata(
@@ -124,16 +123,14 @@ class MainViewModel(
             val videoFile = File(path)
             if (!videoFile.exists()) {
                 logger.e { "Video file not found at path: $path" }
-                viewModelScope.launch(mainDispatcher) {
-                    uploadState.value = "File not found"
-                }
+                updateScreenInfo(Result.success("File not found"))
                 return@launch
             }
             val result = apiService.uploadVideo(video, videoFile)
             if (result.isSuccess) {
-                uploadState.value = "Video uploaded successfully."
+                updateScreenInfo(Result.success("Video uploaded successfully."))
             } else {
-                uploadState.value = "Video upload failed: ${result.exceptionOrNull()?.message}"
+                updateScreenInfo(Result.success("Video upload failed: ${result.exceptionOrNull()?.message}"))
                 logger.e { "Upload failed with exception: ${result.exceptionOrNull()}" }
             }
 
@@ -144,8 +141,18 @@ class MainViewModel(
         viewModelScope.launch(ioDispatcher) {
             val result = apiService.getVideoSummaries()
             if (result.isSuccess) {
-                summariesState.value = result.getOrNull()!!
+                _videoState.update { oldState ->
+                    oldState.copy(
+                        summaries = result.getOrNull()!!,
+                        screenInfo = ""
+                    )
+                }
             } else {
+                _videoState.update { oldState ->
+                    oldState.copy(
+                        screenInfo = result.exceptionOrNull()!!.message.toString()
+                    )
+                }
                 logger.e { "Get Summaries failed with exception: ${result.exceptionOrNull()}" }
             }
         }
@@ -159,11 +166,16 @@ class MainViewModel(
                     _videoState.update { oldState ->
                         oldState.copy(
                             videoModel = result.getOrNull()!!,
-                            currentTimeMillis = result.getOrNull()!!.metadata.lastWatched
+                            currentTimeMillis = result.getOrNull()!!.metadata.lastWatched,
                         )
                     }
                     logger.i { "Get video success: ${result.getOrNull()!!}" }
                 } else {
+                    _videoState.update { oldState ->
+                        oldState.copy(
+                            screenInfo = result.exceptionOrNull()!!.message.toString()
+                        )
+                    }
                     logger.e { "Get video by id failed with exception: ${result.exceptionOrNull()}" }
                 }
             }
@@ -174,37 +186,30 @@ class MainViewModel(
         viewModelScope.launch(ioDispatcher) {
             val lastMillis = _videoState.value.currentTimeMillis
             val result = apiService.updateLastWatched(id = id, lastMillis = lastMillis)
-            viewModelScope.launch(mainDispatcher) {
-                _videoState.update { oldState ->
-                   if (result.isSuccess) {
-                       oldState.copy(
-                           updateLastWatchInfo = result.getOrNull()!!
-                       )
-                   } else{
-                       oldState.copy(
-                           updateLastWatchInfo = result.exceptionOrNull()!!.message!!
-                       )
-                   }
-                }
-            }
+            updateScreenInfo(result)
         }
     }
 
     private fun deleteVideoById(id: String) {
         viewModelScope.launch(ioDispatcher) {
             val response = apiService.deleteVideoById(id)
-            viewModelScope.launch(mainDispatcher) {
-                _videoState.update { oldState ->
-                    if (response.isSuccess) {
-                        oldState.copy(
-                            deleteVideoInfo = response.getOrNull()!!
-                        )
-                    } else{
-                        oldState.copy(
-                            deleteVideoInfo = response.exceptionOrNull()!!.message!!
-                        )
-                    }
-                }
+            updateScreenInfo(response)
+        }
+    }
+
+    private fun restoreVideoById(id: String) {
+        viewModelScope.launch(ioDispatcher) {
+            val response = apiService.restoreVideoById(id)
+            updateScreenInfo(response)
+        }
+    }
+
+    private fun updateScreenInfo(result: Result<String>) {
+        viewModelScope.launch(mainDispatcher) {
+            _videoState.update { oldState ->
+                oldState.copy(
+                    screenInfo = result.getOrNull()!!
+                )
             }
         }
     }
@@ -215,7 +220,8 @@ sealed interface VideoEvent {
     data class UploadVideo(val path: String) : VideoEvent
     data object GetVideoSummaries : VideoEvent
     data class GetVideoById(val id: String) : VideoEvent
-    data class DeleteVideoById(val id: String): VideoEvent
+    data class DeleteVideoById(val id: String) : VideoEvent
+    data class RestoreVideoById(val id: String) : VideoEvent
 }
 
 sealed interface VideoPlayEvent {
@@ -229,7 +235,9 @@ sealed interface VideoPlayEvent {
 data class VideoState(
     val videoModel: VideoModel = VideoModel.default(),
     var currentTimeMillis: Long = 0L,
-    val updateLastWatchInfo: String = "",
-    val deleteVideoInfo: String = "",
+    val currentQueue: List<VideoModel> = listOf(),
+    val screenInfo: String = "",
+    val summaries: List<VideoSummary> = listOf(),
 )
+
 

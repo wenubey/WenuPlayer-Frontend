@@ -12,4 +12,5 @@ interface ApiService {
     suspend fun getVideoById(id: String): Result<VideoModel>
     suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String>
     suspend fun deleteVideoById(id: String): Result<String>
+    suspend fun restoreVideoById(id: String): Result<String>
 }
