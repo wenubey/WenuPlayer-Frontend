@@ -26,7 +26,6 @@ import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
 import java.util.UUID
-import kotlin.math.log
 
 // TODO: Change this ApiServiceImpl with necessary functionalities
 class ApiServiceImpl(

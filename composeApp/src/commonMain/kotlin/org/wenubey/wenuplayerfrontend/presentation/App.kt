@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +45,7 @@ fun App() {
     val videoState by mainViewModel.videoState.collectAsState()
     val currentTime = videoState.currentTimeMillis
     val lastWatchInfo = videoState.updateLastWatchInfo
+    val deleteVideoInfo = videoState.deleteVideoInfo
     val logger = Logger.withTag("App")
 
 
@@ -99,7 +99,7 @@ fun App() {
                 }
 
                 Button(onClick = {
-                    mainViewModel.onEvent(VideoEvent.GetVideoById("1dd94d84-2b50-4264-bcfb-3b0ca8ae814c"))
+                    mainViewModel.onEvent(VideoEvent.GetVideoById("ec0268e7-4923-475a-a559-40267eb7722g"))
                 }) {
                     Text("Get Video By ID")
                 }
@@ -142,6 +142,15 @@ fun App() {
 
                 Text("Current Time: $currentTime")
                 Text(lastWatchInfo)
+
+                Button(
+                    onClick = {
+                        mainViewModel.onEvent(VideoEvent.DeleteVideoById(videoState.videoModel.metadata.id))
+                    },
+                ) {
+                    Text("Delete Current Video")
+                }
+                Text(deleteVideoInfo)
             }
         }
 

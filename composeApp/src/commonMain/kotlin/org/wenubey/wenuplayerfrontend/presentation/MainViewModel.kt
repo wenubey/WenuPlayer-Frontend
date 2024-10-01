@@ -19,7 +19,6 @@ import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import java.io.File
 import java.util.UUID
-import kotlin.math.exp
 
 // TODO: Change this viewmodel with the necessary functionalities
 // TODO: Change this viewmodel with necessary states and events.
@@ -106,6 +105,10 @@ class MainViewModel(
             is VideoEvent.GetVideoById -> {
                 getVideoById(event.id)
             }
+
+            is VideoEvent.DeleteVideoById -> {
+                deleteVideoById(event.id)
+            }
         }
     }
 
@@ -186,6 +189,25 @@ class MainViewModel(
             }
         }
     }
+
+    private fun deleteVideoById(id: String) {
+        viewModelScope.launch(ioDispatcher) {
+            val response = apiService.deleteVideoById(id)
+            viewModelScope.launch(mainDispatcher) {
+                _videoState.update { oldState ->
+                    if (response.isSuccess) {
+                        oldState.copy(
+                            deleteVideoInfo = response.getOrNull()!!
+                        )
+                    } else{
+                        oldState.copy(
+                            deleteVideoInfo = response.exceptionOrNull()!!.message!!
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 sealed interface VideoEvent {
@@ -193,6 +215,7 @@ sealed interface VideoEvent {
     data class UploadVideo(val path: String) : VideoEvent
     data object GetVideoSummaries : VideoEvent
     data class GetVideoById(val id: String) : VideoEvent
+    data class DeleteVideoById(val id: String): VideoEvent
 }
 
 sealed interface VideoPlayEvent {
@@ -207,5 +230,6 @@ data class VideoState(
     val videoModel: VideoModel = VideoModel.default(),
     var currentTimeMillis: Long = 0L,
     val updateLastWatchInfo: String = "",
+    val deleteVideoInfo: String = "",
 )
 
