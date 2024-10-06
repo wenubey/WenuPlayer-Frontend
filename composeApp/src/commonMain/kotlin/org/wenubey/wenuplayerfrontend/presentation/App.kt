@@ -92,7 +92,7 @@ fun App() {
                 }
 
                 Button(onClick = {
-                    mainViewModel.onEvent(VideoEvent.GetVideoById("ec0268e7-4923-475a-a559-40267eb7722g"))
+                    mainViewModel.onEvent(VideoEvent.GetVideoById("ec0268e7-4923-475a-a559-40267eb7722g", "BigBuckBunny.mp4"))
                 }) {
                     Text("Get Video By ID")
                 }

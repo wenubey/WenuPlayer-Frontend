@@ -99,7 +99,7 @@ class MainViewModel(
             }
 
             is VideoEvent.GetVideoById -> {
-                getVideoById(event.id)
+                getVideoById(event.id, event.name)
             }
 
             is VideoEvent.DeleteVideoById -> {
@@ -160,9 +160,9 @@ class MainViewModel(
         }
     }
 
-    private fun getVideoById(id: String) {
+    private fun getVideoById(id: String, name: String) {
         viewModelScope.launch(ioDispatcher) {
-            val result = apiService.getVideoById(id)
+            val result = videoRepository.getVideoById(id, name)
             viewModelScope.launch(mainDispatcher) {
                 if (result.isSuccess) {
                     _videoState.update { oldState ->
@@ -221,7 +221,7 @@ sealed interface VideoEvent {
     // TODO add nextVideo PreviousVideo Events
     data class UploadVideo(val path: String) : VideoEvent
     data object GetVideoSummaries : VideoEvent
-    data class GetVideoById(val id: String) : VideoEvent
+    data class GetVideoById(val id: String, val name: String) : VideoEvent
     data class DeleteVideoById(val id: String) : VideoEvent
     data class RestoreVideoById(val id: String) : VideoEvent
 }

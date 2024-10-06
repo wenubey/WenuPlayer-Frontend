@@ -8,7 +8,7 @@ import java.io.File
 interface VideoRepository {
     suspend fun uploadVideo(videoMetadata: VideoMetadata, videoFile: File): Result<Unit>
     suspend fun getVideoSummaries(): Result<List<VideoSummary>>
-    suspend fun getVideoById(id: String): Result<VideoModel>
+    suspend fun getVideoById(id: String, name: String): Result<VideoModel>
     suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String>
     suspend fun deleteVideoById(id: String): Result<String>
     suspend fun restoreVideoById(id: String): Result<String>

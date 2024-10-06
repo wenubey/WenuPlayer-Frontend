@@ -4,11 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.util.Platform
 import kotlinx.serialization.json.Json
-import org.jetbrains.skiko.OS
-import org.jetbrains.skiko.SkikoProperties
-import java.io.File
 
 actual fun getHttpClient(): HttpClient = HttpClient(CIO) {
     install(ContentNegotiation) {
