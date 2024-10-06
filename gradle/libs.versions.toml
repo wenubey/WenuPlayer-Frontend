@@ -20,6 +20,7 @@ koin-compose = "1.2.0-Beta4"
 ktor = "2.3.11"
 ktor-core = "2.3.12"
 kermit = "2.0.4"
+vlcj = "4.7.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -52,6 +53,9 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor-core
 
 # Kermit
 kermit = {module = "co.touchlab:kermit", version.ref = "kermit"}
+
+# VLCJ
+vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

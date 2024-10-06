@@ -16,6 +16,7 @@ import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
+import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
 import java.io.File
 import java.util.UUID
 
@@ -24,6 +25,7 @@ import java.util.UUID
 class MainViewModel(
     private val apiService: ApiService,
     private val dispatcherProvider: DispatcherProvider,
+    private val videoRepository: VideoRepository,
 ) : ViewModel() {
     private val logger = Logger.withTag("MainViewModel")
     private val ioDispatcher = dispatcherProvider.io()
@@ -139,7 +141,7 @@ class MainViewModel(
 
     private fun getVideoSummaries() {
         viewModelScope.launch(ioDispatcher) {
-            val result = apiService.getVideoSummaries()
+            val result = videoRepository.getVideoSummaries()
             if (result.isSuccess) {
                 _videoState.update { oldState ->
                     oldState.copy(

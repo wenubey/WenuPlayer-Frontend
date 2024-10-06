@@ -25,6 +25,7 @@ import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
+import org.wenubey.wenuplayerfrontend.domain.repository.CommonRepository
 import java.io.File
 import java.util.UUID
 
@@ -32,6 +33,7 @@ import java.util.UUID
 class ApiServiceImpl(
     private val client: HttpClient,
     private val dispatcherProvider: DispatcherProvider,
+    private val commonRepository: CommonRepository,
 ) : ApiService {
     private val logger = Logger.withTag(TAG)
     private val ioDispatcher = dispatcherProvider.io()
@@ -102,7 +104,7 @@ class ApiServiceImpl(
     }
 
     private fun getVideoFile(metadata: VideoMetadata): File {
-        val downloadsDir = getDownloadsDirectory()
+        val downloadsDir = commonRepository.fetchDownloadsDirectory()
         val wenuPlayerDir = File(downloadsDir, WENU_PLAYER_DIR)
 
         if (!wenuPlayerDir.exists()) {

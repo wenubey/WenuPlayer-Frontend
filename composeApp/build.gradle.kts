@@ -61,6 +61,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             // Ktor desktop
             implementation(libs.ktor.client.cio)
+            // VLCJ
+            implementation(libs.vlcj)
         }
     }
 }

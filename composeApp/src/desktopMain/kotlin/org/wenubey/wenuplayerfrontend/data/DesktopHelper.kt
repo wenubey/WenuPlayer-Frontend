@@ -22,11 +22,11 @@ actual fun getHttpClient(): HttpClient = HttpClient(CIO) {
     }
 }
 
-actual fun getDownloadsDirectory(): File {
-    val osName = System.getProperty("os.name")
-   return when {
-        osName.contains("Windows", ignoreCase = true) -> File(System.getenv("USERPROFILE"), "Downloads")
-        osName.contains("Linux", ignoreCase = true) -> File(System.getProperty("user.home"), "Downloads")
-        else -> File(System.getProperty("user.home"), "Downloads")
-   }
-}
+//actual fun fetchDownloadsDirectory(): File {
+//    val osName = System.getProperty("os.name")
+//   return when {
+//        osName.contains("Windows", ignoreCase = true) -> File(System.getenv("USERPROFILE"), "Downloads")
+//        osName.contains("Linux", ignoreCase = true) -> File(System.getProperty("user.home"), "Downloads")
+//        else -> File(System.getProperty("user.home"), "Downloads")
+//   }
+//}

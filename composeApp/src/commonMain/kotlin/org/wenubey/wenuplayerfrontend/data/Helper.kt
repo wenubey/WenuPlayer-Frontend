@@ -5,6 +5,7 @@ import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import java.io.File
 import java.nio.file.Files
 
@@ -29,4 +30,3 @@ fun getContentType(file: File): String =
     Files.probeContentType(file.toPath()) ?: "application/octet-stream"
 
 
-expect fun getDownloadsDirectory(): File

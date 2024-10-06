@@ -84,7 +84,7 @@ fun App() {
                     items(videoSummaries) { videoSummary ->
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column {
-                                Text(videoSummary.id)
+                                Text(videoSummary.id ?: "Unknown")
                                 Text(videoSummary.title)
                             }
                         }

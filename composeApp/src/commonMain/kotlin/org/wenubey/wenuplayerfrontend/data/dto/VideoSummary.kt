@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class VideoSummary(
-    val id: String,
-    val title: String
+    val id: String?= null,
+    val title: String,
+    val thumbnail: ByteArray? = null,
 )
