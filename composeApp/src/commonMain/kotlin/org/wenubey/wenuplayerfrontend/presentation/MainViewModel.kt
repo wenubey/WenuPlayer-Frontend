@@ -11,20 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
-import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
-import java.io.File
-import java.util.UUID
 
 // TODO: Change this viewmodel with the necessary functionalities
 // TODO: Change this viewmodel with necessary states and events.
 class MainViewModel(
-    private val apiService: ApiService,
-    private val dispatcherProvider: DispatcherProvider,
+    dispatcherProvider: DispatcherProvider,
     private val videoRepository: VideoRepository,
 ) : ViewModel() {
     private val logger = Logger.withTag("MainViewModel")
@@ -112,23 +107,9 @@ class MainViewModel(
         }
     }
 
-    // TODO change example video metadata to find video for given path and upload that metadata into backend
-    // TODO File exist should check on api service(in future repo) and move there.
     private fun uploadVideo(path: String) {
         viewModelScope.launch(ioDispatcher) {
-            val video = VideoMetadata(
-                id = UUID.randomUUID().toString(),
-                title = "Video Title",
-                url = "video url",
-                lastWatched = 0L,
-            )
-            val videoFile = File(path)
-            if (!videoFile.exists()) {
-                logger.e { "Video file not found at path: $path" }
-                updateScreenInfo(Result.success("File not found"))
-                return@launch
-            }
-            val result = apiService.uploadVideo(video, videoFile)
+            val result = videoRepository.uploadVideo(path)
             if (result.isSuccess) {
                 updateScreenInfo(Result.success("Video uploaded successfully."))
             } else {
@@ -187,21 +168,21 @@ class MainViewModel(
     private fun updateLastWatch(id: String) {
         viewModelScope.launch(ioDispatcher) {
             val lastMillis = _videoState.value.currentTimeMillis
-            val result = apiService.updateLastWatched(id = id, lastMillis = lastMillis)
+            val result = videoRepository.updateLastWatched(id = id, lastMillis = lastMillis)
             updateScreenInfo(result)
         }
     }
 
     private fun deleteVideoById(id: String) {
         viewModelScope.launch(ioDispatcher) {
-            val response = apiService.deleteVideoById(id)
+            val response = videoRepository.deleteVideoById(id)
             updateScreenInfo(response)
         }
     }
 
     private fun restoreVideoById(id: String) {
         viewModelScope.launch(ioDispatcher) {
-            val response = apiService.restoreVideoById(id)
+            val response = videoRepository.restoreVideoById(id)
             updateScreenInfo(response)
         }
     }

@@ -11,11 +11,12 @@ import org.wenubey.wenuplayerfrontend.domain.repository.CommonRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.LocalFileRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
 import java.io.File
+import java.util.UUID
 
 class VideoRepositoryImpl(
     private val apiService: ApiService,
-    private val dispatcherProvider: DispatcherProvider,
-    private val commonRepository: CommonRepository,
+    dispatcherProvider: DispatcherProvider,
+    commonRepository: CommonRepository,
     private val localFileRepository: LocalFileRepository,
 ): VideoRepository {
 
@@ -23,9 +24,23 @@ class VideoRepositoryImpl(
     private val ioDispatcher = dispatcherProvider.io()
     private val hasInternetConnection = commonRepository.hasInternetConnection()
 
-    override suspend fun uploadVideo(videoMetadata: VideoMetadata, videoFile: File): Result<Unit> =
+    override suspend fun uploadVideo(videoPath: String): Result<Unit> =
         withContext(ioDispatcher) {
-            apiService.uploadVideo(videoMetadata, videoFile)
+            val videoFile = fetchValidateFile(videoPath)
+            videoFile?.also {
+                val videoMetadata = VideoMetadata(
+                    id = UUID.randomUUID().toString(),
+                    title = videoFile.name,
+                    url = videoFile.absolutePath,
+                    lastWatched = 0L,
+                )
+                apiService.uploadVideo(videoMetadata, videoFile)
+                Result.success(Unit)
+            }?:run {
+                logger.e { "Video file not found" }
+                Result.failure<Unit>(Exception("Video file not found"))
+            }
+            Result.failure(Exception("Unknown error occurred."))
         }
 
     override suspend fun getVideoSummaries(): Result<List<VideoSummary>> =
@@ -35,30 +50,38 @@ class VideoRepositoryImpl(
             } else {
                 localFileRepository.fetchLocalVideoSummaries()
             }
+
         }
-
-
 
     override suspend fun getVideoById(id: String, name: String): Result<VideoModel> =
         withContext(ioDispatcher) {
-            logger.i { "getVideoById: id: $id, name: $name"}
-            if (hasInternetConnection) {
-                apiService.getVideoById(id)
+            val result = apiService.getVideoById(id)
+            if (hasInternetConnection && result.isSuccess) {
+                result
             } else {
                 localFileRepository.getVideoByName(name)
             }
         }
 
-    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String> {
-        TODO("Not yet implemented")
+    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String> = withContext(ioDispatcher) {
+        apiService.updateLastWatched(id, lastMillis)
     }
 
-    override suspend fun deleteVideoById(id: String): Result<String> {
-        TODO("Not yet implemented")
+    override suspend fun deleteVideoById(id: String): Result<String> = withContext(ioDispatcher) {
+        apiService.deleteVideoById(id)
     }
 
-    override suspend fun restoreVideoById(id: String): Result<String> {
-        TODO("Not yet implemented")
+    override suspend fun restoreVideoById(id: String): Result<String> = withContext(ioDispatcher) {
+        apiService.restoreVideoById(id)
+    }
+
+    private suspend fun fetchValidateFile(path: String): File? = withContext(ioDispatcher) {
+        val file = File(path)
+        if (file.isFile && file.exists()) {
+            file
+        } else {
+            null
+        }
     }
 }
 

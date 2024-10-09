@@ -1,6 +1,5 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.os.Environment
@@ -13,7 +12,7 @@ import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import java.io.ByteArrayOutputStream
 import java.io.File
 
-class AndroidLocalFileRepository() : LocalFileRepository {
+class AndroidLocalFileRepository : LocalFileRepository {
 
     private val logger = Logger.withTag("AndroidLocalFileRepository")
     private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
@@ -76,7 +75,7 @@ class AndroidLocalFileRepository() : LocalFileRepository {
             id = "OFFLINE",
             title = title,
             url = file.absolutePath,
-            // TODO fetch from dataStore in future
+            // TODO fetch from Room in future
             lastWatched = 0L,
         )
         return videoMetadata

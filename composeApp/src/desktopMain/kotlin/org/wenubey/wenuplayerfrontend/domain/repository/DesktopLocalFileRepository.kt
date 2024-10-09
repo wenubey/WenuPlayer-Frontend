@@ -1,15 +1,17 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
+import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
 
-class DesktopLocalFileRepository: LocalFileRepository {
+class DesktopLocalFileRepository : LocalFileRepository {
 
     override suspend fun fetchLocalVideoSummaries(): Result<List<VideoSummary>> {
         return try {
@@ -44,11 +46,23 @@ class DesktopLocalFileRepository: LocalFileRepository {
     }
 
     override suspend fun fetchDownloadsDirectory(): File {
-        TODO("Not yet implemented")
+        return File(getDownloadsDirectory())
     }
 
     override suspend fun getVideoByName(name: String): Result<VideoModel> {
-        TODO("Not yet implemented")
+        val downloadsDir = fetchDownloadsDirectory()
+        val wenuplayerDir = File(downloadsDir, "wenuplayer")
+        val videoFile = File(wenuplayerDir, name)
+
+        if (!videoFile.exists() || !videoFile.isFile) {
+            return Result.failure(IOException("Video file not found: ${videoFile.absolutePath}"))
+        }
+        val metadata = extractMetadata(videoFile)
+        val videoModel = VideoModel(
+            metadata = metadata,
+            videoFile = videoFile
+        )
+        return Result.success(videoModel)
     }
 
     private fun getDownloadsDirectory(): String {
@@ -68,6 +82,16 @@ class DesktopLocalFileRepository: LocalFileRepository {
                 throw Exception("Unsupported operating system.")
             }
         }
+    }
+
+    private fun extractMetadata(file: File): VideoMetadata {
+        return VideoMetadata(
+            id = "OFFLINE",
+            title = file.name,
+            url = file.absolutePath,
+            // TODO fetch from Room in future
+            lastWatched = 0L
+        )
     }
 
     private fun extractThumbnail(file: File): ByteArray? {
