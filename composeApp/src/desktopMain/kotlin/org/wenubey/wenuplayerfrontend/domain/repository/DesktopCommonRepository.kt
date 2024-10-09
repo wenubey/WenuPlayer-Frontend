@@ -5,7 +5,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class DesktopCommonRepository : CommonRepository {
-    private val logger = Logger.withTag("DesktopCommonRepository")
     override fun hasInternetConnection(): Boolean {
         return try {
             val url = URL("https://www.google.com")

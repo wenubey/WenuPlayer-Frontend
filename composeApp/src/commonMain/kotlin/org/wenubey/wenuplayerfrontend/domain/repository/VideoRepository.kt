@@ -2,7 +2,6 @@ package org.wenubey.wenuplayerfrontend.domain.repository
 
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
-import java.io.File
 
 interface VideoRepository {
     suspend fun uploadVideo(videoPath: String): Result<Unit>
