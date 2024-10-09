@@ -11,6 +11,7 @@ import org.wenubey.wenuplayerfrontend.domain.repository.CommonRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.LocalFileRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
 import java.io.File
+import java.io.IOException
 import java.util.UUID
 
 class VideoRepositoryImpl(
@@ -18,7 +19,7 @@ class VideoRepositoryImpl(
     dispatcherProvider: DispatcherProvider,
     commonRepository: CommonRepository,
     private val localFileRepository: LocalFileRepository,
-): VideoRepository {
+) : VideoRepository {
 
     private val logger = Logger.withTag("VideoRepositoryImpl")
     private val ioDispatcher = dispatcherProvider.io()
@@ -36,7 +37,7 @@ class VideoRepositoryImpl(
                 )
                 apiService.uploadVideo(videoMetadata, videoFile)
                 Result.success(Unit)
-            }?:run {
+            } ?: run {
                 logger.e { "Video file not found" }
                 Result.failure<Unit>(Exception("Video file not found"))
             }
@@ -45,7 +46,7 @@ class VideoRepositoryImpl(
 
     override suspend fun getVideoSummaries(): Result<List<VideoSummary>> =
         withContext(ioDispatcher) {
-            if(hasInternetConnection) {
+            if (hasInternetConnection) {
                 apiService.getVideoSummaries()
             } else {
                 localFileRepository.fetchLocalVideoSummaries()
@@ -63,16 +64,33 @@ class VideoRepositoryImpl(
             }
         }
 
-    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String> = withContext(ioDispatcher) {
-        apiService.updateLastWatched(id, lastMillis)
-    }
+    override suspend fun updateLastWatched(id: String, lastMillis: Long): Result<String> =
+        withContext(ioDispatcher) {
+            if (hasInternetConnection) {
+                apiService.updateLastWatched(id, lastMillis)
+
+            } else {
+                Result.failure(IOException("There is no internet connection"))
+            }
+
+        }
 
     override suspend fun deleteVideoById(id: String): Result<String> = withContext(ioDispatcher) {
-        apiService.deleteVideoById(id)
+        if (hasInternetConnection) {
+            apiService.deleteVideoById(id)
+        } else {
+            // TODO set to Room and get from Room db in future
+            Result.failure(IOException("There is no internet connection"))
+        }
     }
 
     override suspend fun restoreVideoById(id: String): Result<String> = withContext(ioDispatcher) {
-        apiService.restoreVideoById(id)
+        if (hasInternetConnection) {
+            apiService.restoreVideoById(id)
+        } else {
+            // TODO set to Room and get from Room db in future
+            Result.failure(IOException("There is no internet connection"))
+        }
     }
 
     private suspend fun fetchValidateFile(path: String): File? = withContext(ioDispatcher) {

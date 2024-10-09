@@ -1,6 +1,5 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
-import co.touchlab.kermit.Logger
 import java.net.HttpURLConnection
 import java.net.URL
 
