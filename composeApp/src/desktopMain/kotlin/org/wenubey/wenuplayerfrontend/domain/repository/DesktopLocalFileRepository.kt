@@ -73,7 +73,7 @@ class DesktopLocalFileRepository : LocalFileRepository {
                 "$userHome\\Downloads"
             }
 
-            os.contains("nix") || os.contains("nux") || os.contains("aix") -> {
+            os.contains("nix") || os.contains("nux") || os.contains("aix") || os.contains("mac") -> {
                 val userHome = System.getProperty("user.home")
                 "$userHome/Downloads"
             }
