@@ -177,7 +177,7 @@ class ApiServiceImpl(
 
     private companion object {
         const val TAG = "ApiService"
-        const val BASE_URL = "http://0.0.0.0:8080/"
+        const val BASE_URL = "http://192.168.0.93:8080/"
         const val VIDEOS_PATH = "videos/"
         const val UPLOAD_VIDEO_ENDPOINT = "upload"
         const val GET_VIDEO_METADATA_ENDPOINT = "video/{id}"

@@ -44,7 +44,6 @@ fun App() {
     val videoState by mainViewModel.videoState.collectAsState()
     val videoSummaries = videoState.summaries
     val currentTime = videoState.currentTimeMillis
-    val screenInfo = videoState.screenInfo
     val logger = Logger.withTag("App")
 
 
@@ -151,8 +150,6 @@ fun App() {
                 ) {
                     Text("Restore Current Video")
                 }
-
-                Text(screenInfo)
             }
         }
 

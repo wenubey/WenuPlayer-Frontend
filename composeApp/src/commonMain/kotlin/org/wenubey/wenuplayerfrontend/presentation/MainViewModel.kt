@@ -13,6 +13,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
+import org.wenubey.wenuplayerfrontend.domain.repository.CommonRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
 
@@ -21,6 +22,7 @@ import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
 class MainViewModel(
     dispatcherProvider: DispatcherProvider,
     private val videoRepository: VideoRepository,
+    private val commonRepository: CommonRepository,
 ) : ViewModel() {
     private val logger = Logger.withTag("MainViewModel")
     private val ioDispatcher = dispatcherProvider.io()
@@ -125,17 +127,13 @@ class MainViewModel(
             val result = videoRepository.getVideoSummaries()
             if (result.isSuccess) {
                 _videoState.update { oldState ->
+                    commonRepository.showToast("Video summaries fetched successfully.")
                     oldState.copy(
                         summaries = result.getOrNull()!!,
-                        screenInfo = ""
                     )
                 }
             } else {
-                _videoState.update { oldState ->
-                    oldState.copy(
-                        screenInfo = result.exceptionOrNull()!!.message.toString()
-                    )
-                }
+                commonRepository.showToast(result.exceptionOrNull()!!.message.toString())
                 logger.e { "Get Summaries failed with exception: ${result.exceptionOrNull()}" }
             }
         }
@@ -146,6 +144,7 @@ class MainViewModel(
             val result = videoRepository.getVideoById(id, name)
             viewModelScope.launch(mainDispatcher) {
                 if (result.isSuccess) {
+                    commonRepository.showToast("Video fetched successfully.")
                     _videoState.update { oldState ->
                         oldState.copy(
                             videoModel = result.getOrNull()!!,
@@ -154,11 +153,7 @@ class MainViewModel(
                     }
                     logger.i { "Get video success: ${result.getOrNull()!!}" }
                 } else {
-                    _videoState.update { oldState ->
-                        oldState.copy(
-                            screenInfo = result.exceptionOrNull()!!.message.toString()
-                        )
-                    }
+                    commonRepository.showToast(result.exceptionOrNull()!!.message.toString())
                     logger.e { "Get video by id failed with exception: ${result.exceptionOrNull()}" }
                 }
             }
@@ -189,10 +184,13 @@ class MainViewModel(
 
     private fun updateScreenInfo(result: Result<String>) {
         viewModelScope.launch(mainDispatcher) {
-            _videoState.update { oldState ->
-                oldState.copy(
-                    screenInfo = result.getOrNull()!!
-                )
+            if (result.isSuccess) {
+                commonRepository.showToast(result.getOrNull()!!)
+                logger.i { "Update screen info success: ${result.getOrNull()}" }
+            }
+            if (result.isFailure) {
+                commonRepository.showToast(result.exceptionOrNull()!!.message.toString())
+                logger.e { "Update screen info failed with exception: ${result.exceptionOrNull()}" }
             }
         }
     }
@@ -219,7 +217,6 @@ data class VideoState(
     val videoModel: VideoModel = VideoModel.default(),
     var currentTimeMillis: Long = 0L,
     val currentQueue: List<VideoModel> = listOf(),
-    val screenInfo: String = "",
     val summaries: List<VideoSummary> = listOf(),
 )
 

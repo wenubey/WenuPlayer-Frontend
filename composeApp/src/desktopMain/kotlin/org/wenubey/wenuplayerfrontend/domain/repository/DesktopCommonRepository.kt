@@ -1,5 +1,6 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
+import org.wenubey.wenuplayerfrontend.presentation.DesktopToast
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -19,6 +20,12 @@ class DesktopCommonRepository : CommonRepository {
             false
         }
     }
+
+    override suspend fun showToast(message: String) {
+        DesktopToast(message)
+    }
 }
 
 actual fun hasInternetConnection(): CommonRepository = DesktopCommonRepository()
+
+actual fun showToast(): CommonRepository = DesktopCommonRepository()

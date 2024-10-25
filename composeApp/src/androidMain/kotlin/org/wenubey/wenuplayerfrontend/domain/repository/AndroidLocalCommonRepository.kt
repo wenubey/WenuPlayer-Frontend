@@ -1,15 +1,12 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Environment
+import android.widget.Toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
-import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
-import java.io.ByteArrayOutputStream
-import java.io.File
 
 class AndroidLocalCommonRepository: CommonRepository {
     private val context: Context by inject(Context::class.java)
@@ -22,8 +19,14 @@ class AndroidLocalCommonRepository: CommonRepository {
         return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
     }
 
+    override suspend fun showToast(message: String) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }
 
-
-
 actual fun hasInternetConnection(): CommonRepository = AndroidLocalCommonRepository()
+
+actual fun showToast(): CommonRepository = AndroidLocalCommonRepository()
