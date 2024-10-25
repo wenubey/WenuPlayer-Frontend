@@ -1,11 +1,13 @@
 package org.wenubey.wenuplayerfrontend.presentation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
@@ -82,6 +84,7 @@ fun App() {
                 ) {
                     items(videoSummaries) { videoSummary ->
                         Row(modifier = Modifier.fillMaxWidth()) {
+                            videoSummary.thumbnail?.let { Image(modifier = Modifier.size(50.dp), bitmap = it, contentDescription = null) }
                             Column {
                                 Text(videoSummary.id ?: "Unknown")
                                 Text(videoSummary.title)

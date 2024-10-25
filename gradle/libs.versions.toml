@@ -20,7 +20,7 @@ koin-compose = "1.2.0-Beta4"
 ktor = "2.3.11"
 ktor-core = "2.3.12"
 kermit = "2.0.4"
-vlcj = "4.7.0"
+vlcj = "4.8.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

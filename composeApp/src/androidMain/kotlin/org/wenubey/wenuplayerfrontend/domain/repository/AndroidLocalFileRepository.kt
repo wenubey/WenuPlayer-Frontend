@@ -1,15 +1,15 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
-import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.os.Environment
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import org.wenubey.wenuplayerfrontend.data.dto.VideoMetadata
 import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
 import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
-import java.io.ByteArrayOutputStream
 import java.io.File
 
 class AndroidLocalFileRepository : LocalFileRepository {
@@ -65,6 +65,19 @@ class AndroidLocalFileRepository : LocalFileRepository {
             }
         }
 
+    override suspend fun fetchThumbnail(name: String): ImageBitmap? {
+        val retriever = MediaMetadataRetriever()
+        val downloadsDir = fetchDownloadsDirectory()
+        val wenuplayerDir = File(downloadsDir, "wenuplayer")
+        val videoFile = File(wenuplayerDir, name)
+        retriever.setDataSource(videoFile.absolutePath)
+
+        val imageBitmap = retriever.frameAtTime?.asImageBitmap()
+        retriever.release()
+
+        return imageBitmap
+    }
+
     private fun extractMetadata(file: File): VideoMetadata {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(file.absolutePath)
@@ -89,21 +102,13 @@ class AndroidLocalFileRepository : LocalFileRepository {
         val title =
             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: file.name
 
-        val bitmap = retriever.frameAtTime
-
-        val thumbnail = if (bitmap != null) {
-            val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            stream.toByteArray()
-        } else {
-            null
-        }
+        val bitmap = retriever.frameAtTime?.asImageBitmap()
 
         retriever.release()
         return VideoSummary(
             id = null,
             title = title,
-            thumbnail = thumbnail
+            thumbnail = bitmap
         )
     }
 }

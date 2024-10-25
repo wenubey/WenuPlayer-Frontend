@@ -46,12 +46,19 @@ class VideoRepositoryImpl(
 
     override suspend fun getVideoSummaries(): Result<List<VideoSummary>> =
         withContext(ioDispatcher) {
-            if (hasInternetConnection) {
-                apiService.getVideoSummaries()
-            } else {
+            val result = apiService.getVideoSummaries()
+            if (result.isFailure || !hasInternetConnection) {
+                logger.i { "Has not internet." }
                 localFileRepository.fetchLocalVideoSummaries()
+            } else {
+                logger.i { "Has internet" }
+                val mappedVideoSummaries = result.getOrNull()!!.map { videoSummary ->
+                    videoSummary.copy(
+                        thumbnail = localFileRepository.fetchThumbnail(videoSummary.title)
+                    )
+                }
+                Result.success(mappedVideoSummaries)
             }
-
         }
 
     override suspend fun getVideoById(id: String, name: String): Result<VideoModel> =
