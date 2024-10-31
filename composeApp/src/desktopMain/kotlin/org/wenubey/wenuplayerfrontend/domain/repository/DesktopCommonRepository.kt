@@ -1,6 +1,6 @@
 package org.wenubey.wenuplayerfrontend.domain.repository
 
-import org.wenubey.wenuplayerfrontend.presentation.DesktopToast
+import org.wenubey.wenuplayerfrontend.util.DesktopToast
 import java.net.HttpURLConnection
 import java.net.URL
 

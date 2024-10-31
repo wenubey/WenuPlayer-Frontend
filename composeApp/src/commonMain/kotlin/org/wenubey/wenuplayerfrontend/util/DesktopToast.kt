@@ -1,4 +1,4 @@
-package org.wenubey.wenuplayerfrontend.presentation
+package org.wenubey.wenuplayerfrontend.util
 
 import java.awt.*
 import javax.swing.*

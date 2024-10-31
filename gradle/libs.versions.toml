@@ -20,7 +20,8 @@ koin-compose = "1.2.0-Beta4"
 ktor = "2.3.11"
 ktor-core = "2.3.12"
 kermit = "2.0.4"
-vlcj = "4.8.3"
+vlcj = "4.8.1"
+media3Exoplayer = "1.4.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -56,6 +57,7 @@ kermit = {module = "co.touchlab:kermit", version.ref = "kermit"}
 
 # VLCJ
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

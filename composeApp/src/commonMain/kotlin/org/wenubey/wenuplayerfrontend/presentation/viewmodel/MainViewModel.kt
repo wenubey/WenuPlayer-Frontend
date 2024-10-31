@@ -1,21 +1,18 @@
-package org.wenubey.wenuplayerfrontend.presentation
+package org.wenubey.wenuplayerfrontend.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.wenubey.wenuplayerfrontend.data.dto.VideoSummary
-import org.wenubey.wenuplayerfrontend.domain.model.VideoModel
 import org.wenubey.wenuplayerfrontend.domain.repository.CommonRepository
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
+import org.wenubey.wenuplayerfrontend.util.formatDuration
 
 // TODO: Change this viewmodel with the necessary functionalities
 // TODO: Change this viewmodel with necessary states and events.
@@ -33,56 +30,6 @@ class MainViewModel(
 
     private var videoJob: Job? = null
 
-
-    fun onPlayEvent(playEvent: VideoPlayEvent) {
-        when (playEvent) {
-            VideoPlayEvent.Backward -> {
-                viewModelScope.launch(mainDispatcher) {
-                    _videoState.update { oldState ->
-                        val newTime = oldState.currentTimeMillis - 5 * 1000L
-                        oldState.copy(
-                            currentTimeMillis = newTime
-                        )
-                    }
-                }
-            }
-
-            VideoPlayEvent.Forward -> {
-                viewModelScope.launch(mainDispatcher) {
-                    _videoState.update { oldState ->
-                        val newTime = oldState.currentTimeMillis + 5 * 1000L
-                        oldState.copy(
-                            currentTimeMillis = newTime
-                        )
-                    }
-                }
-            }
-
-            VideoPlayEvent.Pause -> {
-                viewModelScope.launch(mainDispatcher) {
-                    videoJob?.cancel()
-                    val videoId = _videoState.value.videoModel.metadata.id
-                    updateLastWatch(videoId)
-                }
-            }
-
-            VideoPlayEvent.Play -> {
-                videoJob = viewModelScope.launch(ioDispatcher) {
-                    while (isActive) {
-                        viewModelScope.launch(mainDispatcher) {
-                            _videoState.update { oldState ->
-                                val newTime = oldState.currentTimeMillis + 1 * 1000L
-                                oldState.copy(
-                                    currentTimeMillis = newTime
-                                )
-                            }
-                        }
-                        delay(1000L)
-                    }
-                }
-            }
-        }
-    }
 
     fun onEvent(event: VideoEvent) {
         when (event) {
@@ -146,9 +93,10 @@ class MainViewModel(
                 if (result.isSuccess) {
                     commonRepository.showToast("Video fetched successfully.")
                     _videoState.update { oldState ->
+                        val lastWatchedTimeMillis = result.getOrNull()!!.metadata.lastWatched
                         oldState.copy(
                             videoModel = result.getOrNull()!!,
-                            currentTimeMillis = result.getOrNull()!!.metadata.lastWatched,
+                            currentTime = formatDuration(lastWatchedTimeMillis),
                         )
                     }
                     logger.i { "Get video success: ${result.getOrNull()!!}" }
@@ -160,13 +108,6 @@ class MainViewModel(
         }
     }
 
-    private fun updateLastWatch(id: String) {
-        viewModelScope.launch(ioDispatcher) {
-            val lastMillis = _videoState.value.currentTimeMillis
-            val result = videoRepository.updateLastWatched(id = id, lastMillis = lastMillis)
-            updateScreenInfo(result)
-        }
-    }
 
     private fun deleteVideoById(id: String) {
         viewModelScope.launch(ioDispatcher) {
@@ -197,27 +138,9 @@ class MainViewModel(
 }
 
 sealed interface VideoEvent {
-    // TODO add nextVideo PreviousVideo Events
     data class UploadVideo(val path: String) : VideoEvent
     data object GetVideoSummaries : VideoEvent
     data class GetVideoById(val id: String, val name: String) : VideoEvent
     data class DeleteVideoById(val id: String) : VideoEvent
     data class RestoreVideoById(val id: String) : VideoEvent
 }
-
-sealed interface VideoPlayEvent {
-    data object Play : VideoPlayEvent
-    data object Pause : VideoPlayEvent
-    data object Forward : VideoPlayEvent
-    data object Backward : VideoPlayEvent
-}
-
-// TODO create new states like current video queue change this video State
-data class VideoState(
-    val videoModel: VideoModel = VideoModel.default(),
-    var currentTimeMillis: Long = 0L,
-    val currentQueue: List<VideoModel> = listOf(),
-    val summaries: List<VideoSummary> = listOf(),
-)
-
-

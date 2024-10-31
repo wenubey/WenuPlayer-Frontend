@@ -11,7 +11,7 @@ import org.wenubey.wenuplayerfrontend.data.getHttpClient
 import org.wenubey.wenuplayerfrontend.domain.repository.ApiService
 import org.wenubey.wenuplayerfrontend.domain.repository.DispatcherProvider
 import org.wenubey.wenuplayerfrontend.domain.repository.VideoRepository
-import org.wenubey.wenuplayerfrontend.presentation.MainViewModel
+import org.wenubey.wenuplayerfrontend.presentation.viewmodel.MainViewModel
 
 private val dispatcherModule = module {
     singleOf(::DispatcherProviderImpl).bind(DispatcherProvider::class)
